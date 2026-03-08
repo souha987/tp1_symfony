@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ tache.titre }}{% endblock %}
+
+{% block body %}
+    <div class="mb-4">
+        <h1 class="display-4 {% if tache.terminee %}text-muted text-decoration-line-through{% endif %}">
+            {{ tache.titre }}
+        </h1>
+        
+        <p class="text-muted mb-4 pb-2 border-bottom">
+            Créée le {{ tache.dateCreation|date('d/m/Y à H:i') }}
+            {% if tache.terminee %}
+                <span class="badge bg-success ms-2">✅ Terminée</span>
+            {% else %}
+                <span class="badge bg-warning text-dark ms-2">⏳ En cours</span>
+            {% endif %}
+        </p>
+        
+        {% if tache.description %}
+            <div class="lead mb-5 p-4 bg-light rounded">
+                {{ tache.description|nl2br }}
+            </div>
+        {% else %}
+            <div class="alert alert-secondary mb-5">
+                Aucune description fournie pour cette tâche.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_taches') }}" class="btn btn-outline-secondary">
+            ← Retour à la liste
+        </a>
+        {% if not tache.terminee %}
+            <a href="{{ path('app_tache_terminer', {id: tache.id}) }}" class="btn btn-success">
+                ✓ Marquer comme terminée
+            </a>
+        {% endif %}
+        <form method="post" action="{{ path('app_tache_supprimer', {id: tache.id}) }}" 
+              onsubmit="return confirm('Supprimer définitivement cette tâche ?');" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('supprimer_' ~ tache.id) }}">
+            <button type="submit" class="btn btn-danger">🗑️ Supprimer</button>
+        </form>
+    </div>
+{% endblock %}

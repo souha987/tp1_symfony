@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ categorie.nom }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <h1 class="mb-0">📂 {{ categorie.nom }}</h1>
+        <div class="btn-group">
+            <a href="{{ path('app_categorie_modifier', {id: categorie.id}) }}" class="btn btn-primary">
+                ✏️ Modifier
+            </a>
+            <form method="post" action="{{ path('app_categorie_supprimer', {id: categorie.id}) }}"
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('supprimer_' ~ categorie.id) }}">
+                <button type="submit" class="btn btn-danger">🗑️ Supprimer</button>
+            </form>
+        </div>
+    </div>
+
+    {% if categorie.description %}
+        <div class="alert alert-secondary mb-4">
+            {{ categorie.description }}
+        </div>
+    {% endif %}
+
+    <h2 class="h4 mb-3">Articles dans cette catégorie ({{ categorie.articles|length }})</h2>
+
+    {% if categorie.articles is empty %}
+        <div class="alert alert-info">
+            Aucun article dans cette catégorie.
+            <a href="{{ path('app_article_nouveau') }}" class="alert-link">Créer un article</a>
+        </div>
+    {% else %}
+        <div class="list-group">
+            {% for article in categorie.articles %}
+                <a href="{{ path('app_article_detail', {id: article.id}) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ article.titre }}</h5>
+                        <small>{{ article.dateCreation|date('d/m/Y') }}</small>
+                    </div>
+                    <p class="mb-1">Par {{ article.auteur }}</p>
+                    <small>
+                        {% if article.publie %}
+                            <span class="badge bg-success">✅ Publié</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">📝 Brouillon</span>
+                        {% endif %}
+                    </small>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <a href="{{ path('app_categories') }}" class="btn btn-outline-secondary mt-4">
+        ← Retour aux catégories
+    </a>
+{% endblock %}

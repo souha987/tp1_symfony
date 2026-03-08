@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            {# Message de bienvenue personnalisé selon que l'utilisateur est connecté ou non #}
+            {% if app.user %}
+                <div class="alert alert-success mb-4">
+                    <h4 class="alert-heading">Bonjour {{ app.user.pseudo }} ! 👋</h4>
+                    <p>Vous êtes connecté avec l'email : <strong>{{ app.user.email }}</strong></p>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-4">
+                    <h4 class="alert-heading">Visiteur anonyme</h4>
+                    <p>Connectez-vous pour accéder à toutes les fonctionnalités.</p>
+                </div>
+            {% endif %}
+            
+            <h1 class="display-4 mb-4">👋 Bienvenue sur notre application Symfony !</h1>
+            <p class="lead">Ceci est votre première application construite avec le framework <strong>Symfony 7.4</strong>.</p>
+            
+            <div class="alert alert-info mt-5">
+                <p class="mb-0">Date actuelle : {{ "now"|date("d/m/Y H:i") }}</p>
+            </div>
+            
+            <div class="mt-5">
+                <h3>Routes disponibles :</h3>
+                <ul class="list-group mt-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-home"></i>
+                            <a href="{{ path('app_accueil') }}" class="ms-2">Accueil</a>
+                        </div>
+                        <span class="badge bg-success">Publique</span>
+                    </li>
+                    
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-newspaper"></i>
+                            <a href="{{ path('app_articles') }}" class="ms-2">Liste des articles</a>
+                        </div>
+                        <span class="badge bg-success">Publique</span>
+                    </li>
+                    
+                    {% if is_granted('ROLE_USER') %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-plus-circle"></i>
+                                <a href="{{ path('app_article_nouveau') }}" class="ms-2">Créer un nouvel article</a>
+                            </div>
+                            <span class="badge bg-warning text-dark">Réservé aux membres</span>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-tasks"></i>
+                            <a href="{{ path('app_taches') }}" class="ms-2">Liste des tâches</a>
+                        </div>
+                        <span class="badge bg-success">Publique</span>
+                    </li>
+                    
+                    {# Afficher les liens d'authentification uniquement si l'utilisateur n'est pas connecté #}
+                    {% if not app.user %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-sign-in-alt"></i>
+                                <a href="{{ path('app_login') }}" class="ms-2">Connexion</a>
+                            </div>
+                            <span class="badge bg-info">Nouveau</span>
+                        </li>
+                        
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-user-plus"></i>
+                                <a href="{{ path('app_register') }}" class="ms-2">Inscription</a>
+                            </div>
+                            <span class="badge bg-info">Nouveau</span>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-sign-out-alt"></i>
+                                <a href="{{ path('app_logout') }}" class="ms-2">Déconnexion</a>
+                            </div>
+                            <span class="badge bg-secondary">Session active</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            {# Section d'information sur les rôles (visible uniquement pour les admins) #}
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="alert alert-warning mt-4">
+                    <h5>🔐 Accès administrateur détecté</h5>
+                    <p class="mb-0">Vous avez les droits d'administration. Vous pouvez accéder à la gestion des catégories.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
