@@ -11,20 +11,31 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 class ArticlesController extends AbstractController
 {
     #[Route('/articles', name: 'app_articles')]
-    public function index(ArticleRepository $articleRepository): Response
-    {
-        return $this->render('articles/index.html.twig', [
-            'articles' => $articleRepository->findAll(),
-        ]);
-    }
+    #[Route('/articles', name: 'app_articles')]
+public function index(ArticleRepository $articleRepository, RequestStack $requestStack): Response
+{
+    $session = $requestStack->getSession();
 
+    // compteur visites
+    $visites = $session->get('visites', 0);
+    $visites++;
+    $session->set('visites', $visites);
+
+    return $this->render('articles/index.html.twig', [
+        'articles' => $articleRepository->findAll(),
+        'visites' => $visites
+    ]);
+}
+      
     #[Route('/articles/nouveau', name: 'app_article_nouveau')]
     #[IsGranted('ROLE_USER')]
-    public function nouveau(Request $request, EntityManagerInterface $entityManager): Response
+    public function nouveau(Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
     {
         $article = new Article();
 
@@ -32,11 +43,28 @@ class ArticlesController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+             $email = (new Email())
+    ->from('tp@symfony.com')
+    ->to('test@gmail.com')
+    ->subject('Nouvel article créé')
+    ->text('Un article vient d’être ajouté sur le site.');
 
+$mailer->send($email);
+            // lien utilisateur connecté
             $article->setAuteurUser($this->getUser());
 
-            $entityManager->persist($article);
-            $entityManager->flush();
+            // date automatique
+            if (!$article->getDateCreation()) {
+                if (!$article->getDateCreation()) {
+                $article->setDateCreation(new \DateTimeImmutable());
+}
+            }
+
+            // publié par défaut
+            $article->setPublie(true);
+
+            $em->persist($article);
+            $em->flush();
 
             return $this->redirectToRoute('app_articles');
         }
@@ -56,18 +84,17 @@ class ArticlesController extends AbstractController
 
     #[Route('/articles/{id}/modifier', name: 'app_article_modifier')]
     #[IsGranted('ROLE_USER')]
-    public function modifier(Request $request, Article $article, EntityManagerInterface $entityManager): Response
+    public function modifier(Request $request, Article $article, EntityManagerInterface $em): Response
     {
         if ($this->getUser() !== $article->getAuteurUser()) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas l'auteur !");
+            throw $this->createAccessDeniedException();
         }
 
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
+            $em->flush();
             return $this->redirectToRoute('app_articles');
         }
 
@@ -80,11 +107,20 @@ class ArticlesController extends AbstractController
     #[Route('/articles/{id}/supprimer', name: 'app_article_supprimer', methods: ['POST'])]
     public function supprimer(Article $article, Request $request, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('supprimer_' . $article->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('supprimer_'.$article->getId(), $request->request->get('_token'))) {
             $em->remove($article);
             $em->flush();
         }
 
         return $this->redirectToRoute('app_articles');
     }
+    #[Route('/articles/publies', name: 'app_articles_publies')]
+public function articlesPublies(ArticleRepository $articleRepository): Response
+{
+    $articles = $articleRepository->findPublishedArticles();
+
+    return $this->render('articles/index.html.twig', [
+        'articles' => $articles
+    ]);
+}
 }

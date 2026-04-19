@@ -3,9 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ArticleRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article
@@ -16,49 +14,34 @@ class Article
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Le titre ne peut pas être vide.')]
-    #[Assert\Length(
-        min: 5,
-        max: 255,
-        minMessage: 'Le titre doit contenir au moins {{ limit }} caractères.',
-        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
-    )]
     private ?string $titre = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Assert\NotBlank(message: 'Le contenu ne peut pas être vide.')]
-    #[Assert\Length(
-        min: 20,
-        minMessage: 'Le contenu doit contenir au moins {{ limit }} caractères.'
-    )]
+    #[ORM\Column(type: 'text')]
     private ?string $contenu = null;
 
-    #[ORM\Column(length: 100)]
-    #[Assert\NotBlank(message: 'L\'auteur est obligatoire.')]
-    #[Assert\Length(
-        min: 2,
-        max: 100,
-        minMessage: 'Le nom de l\'auteur doit contenir au moins {{ limit }} caractères.'
-    )]
-    #[Assert\Regex(
-        pattern: '/^[a-zA-ZÀ-ÿ\s\-]+$/',
-        message: 'Le nom de l\'auteur ne peut contenir que des lettres, espaces et tirets.'
-    )]
+    #[ORM\Column(length: 255)]
     private ?string $auteur = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Assert\NotNull(message: 'La date de création est obligatoire.')]
-    private ?\DateTimeInterface $dateCreation = null;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $dateCreation = null;
 
-    #[ORM\Column]
-    private ?bool $publie = null;
+    #[ORM\Column(type: 'boolean')]
+    private bool $publie = false;
 
-    #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[ORM\ManyToOne]
     private ?Categorie $categorie = null;
 
-    #[ORM\ManyToOne(inversedBy: 'articles')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $auteur_user = null;
+    #[ORM\ManyToOne]
+    private ?User $auteurUser = null;
+
+    // 🔥 IMPORTANT : initialisation automatique
+    public function __construct()
+    {
+        $this->dateCreation = new \DateTimeImmutable();
+        $this->publie = false;
+    }
+
+    // ================= GETTERS / SETTERS =================
 
     public function getId(): ?int
     {
@@ -70,7 +53,7 @@ class Article
         return $this->titre;
     }
 
-    public function setTitre(string $titre): static
+    public function setTitre(string $titre): self
     {
         $this->titre = $titre;
         return $this;
@@ -81,7 +64,7 @@ class Article
         return $this->contenu;
     }
 
-    public function setContenu(string $contenu): static
+    public function setContenu(string $contenu): self
     {
         $this->contenu = $contenu;
         return $this;
@@ -92,29 +75,29 @@ class Article
         return $this->auteur;
     }
 
-    public function setAuteur(string $auteur): static
+    public function setAuteur(string $auteur): self
     {
         $this->auteur = $auteur;
         return $this;
     }
 
-    public function getDateCreation(): ?\DateTimeInterface
+    public function getDateCreation(): ?\DateTimeImmutable
     {
         return $this->dateCreation;
     }
 
-    public function setDateCreation(\DateTimeInterface $dateCreation): static
+    public function setDateCreation(\DateTimeImmutable $dateCreation): self
     {
         $this->dateCreation = $dateCreation;
         return $this;
     }
 
-    public function isPublie(): ?bool
+    public function isPublie(): bool
     {
         return $this->publie;
     }
 
-    public function setPublie(bool $publie): static
+    public function setPublie(bool $publie): self
     {
         $this->publie = $publie;
         return $this;
@@ -125,7 +108,7 @@ class Article
         return $this->categorie;
     }
 
-    public function setCategorie(?Categorie $categorie): static
+    public function setCategorie(?Categorie $categorie): self
     {
         $this->categorie = $categorie;
         return $this;
@@ -133,13 +116,12 @@ class Article
 
     public function getAuteurUser(): ?User
     {
-        return $this->auteur_user;
+        return $this->auteurUser;
     }
 
-    public function setAuteurUser(?User $auteur_user): static
+    public function setAuteurUser(?User $auteurUser): self
     {
-        $this->auteur_user = $auteur_user;
-
+        $this->auteurUser = $auteurUser;
         return $this;
     }
 }

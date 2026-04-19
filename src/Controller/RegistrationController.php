@@ -21,6 +21,7 @@ class RegistrationController extends AbstractController
     ): Response {
 
         $user = new User();
+
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
@@ -31,18 +32,16 @@ class RegistrationController extends AbstractController
             $user->setPassword(
                 $userPasswordHasher->hashPassword($user, $plainPassword)
             );
-
-            // ✅ FIX IMPORTANT pseudo
-            $user->setPseudo($form->get('pseudo')->getData() ?? $user->getEmail());
+            $user->setRoles(['ROLE_USER']);
 
             $entityManager->persist($user);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_login');
+            return $this->redirectToRoute('app_home');
         }
 
         return $this->render('registration/register.html.twig', [
-            'registrationForm' => $form
+            'registrationForm' => $form->createView(),
         ]);
     }
 }
