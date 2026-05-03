@@ -1,39 +1,120 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ article.titre }}{% endblock %}
+{% block title %}{{ article.titre }} - Blog{% endblock %}
 
 {% block body %}
-    <h1 class="display-4">{{ article.titre }}</h1>
-    <p class="text-muted mb-4 pb-2 border-bottom">
-        Par <strong class="text-dark">{{ article.auteur }}</strong> 
-        — {{ article.dateCreation|date('d/m/Y à H:i') }}
-        {% if article.publie %}
-            <span class="badge bg-success ms-2">✅ Publié</span>
-        {% else %}
-            <span class="badge bg-warning text-dark ms-2">📝 Brouillon</span>
-        {% endif %}
-    </p>
-    
-    <div class="lead mb-5 p-3 bg-light rounded">
-        {{ article.contenu }}
-    </div>
-    {# Boutons d'action #}
-    <div class="d-flex gap-2 align-items-center mt-4">
-        <a href="{{ path('app_article_modifier', {id: article.id}) }}" class="btn btn-primary">
-            ✏️ Modifier
-        </a>
-        
-        <form method="post" action="{{ path('app_article_supprimer', {id: article.id}) }}"
-              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');" class="d-inline">
-            <input type="hidden" name="_token" value="{{ csrf_token('supprimer_' ~ article.id) }}">
-            <button type="submit" class="btn btn-danger">🗑️ Supprimer</button>
-        </form>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            
+            {# 🆕 HEADER AMÉLIORÉ #}
+            <article class="article-card">
+                <header class="article-header mb-4">
+                    <div class="meta-bar d-flex flex-wrap align-items-center gap-2 mb-3">
+                        {% if article.categorie %}
+                            <span class="badge bg-info text-dark fs-6">
+                                {{ article.categorie.nom }}
+                            </span>
+                        {% endif %}
+                        
+                        <span class="badge bg-primary fs-6">
+                            ⏱️ {{ article.contenu|reading_time }}
+                        </span>
+                        
+                        <span class="badge bg-success">
+                            ✅ {{ article.publie ? 'Publié' : 'Brouillon' }}
+                        </span>
+                    </div>
+                    
+                    <h1 class="display-4 fw-bold mb-3">{{ article.titre }}</h1>
+                    
+                    <div class="author-meta text-muted">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <strong>{{ article.auteur }}</strong>
+                                <br>
+                                <small>{{ article.dateCreation|format_datetime('short', 'short') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </header>
 
-        <a href="{{ path('app_articles') }}" class="btn btn-outline-secondary">
-            ← Retour à la liste
-        </a>
+                {# CONTENU #}
+                <div class="article-content">
+                    <div class="content-body lead mb-5">
+                        {{ article.contenu|raw }}
+                    </div>
+                </div>
+
+                {# ACTIONS #}
+                <footer class="article-footer mt-5 pt-4 border-top">
+                    <div class="action-buttons d-flex gap-2 flex-wrap align-items-center">
+                        <a href="{{ path('app_article_modifier', {id: article.id}) }}" 
+                           class="btn btn-outline-primary btn-lg" title="Modifier">
+                            <i class="bi bi-pencil me-1"></i> Modifier
+                        </a>
+                        
+                        <a href="{{ path('app_articles') }}" 
+                           class="btn btn-outline-secondary btn-lg" title="Retour">
+                            <i class="bi bi-arrow-left me-1"></i> Liste
+                        </a>
+                        
+                        {# SUPPRESSION #}
+                        <form method="post" action="{{ path('app_article_supprimer', {id: article.id}) }}"
+                              onsubmit="return confirm('⚠️ Supprimer définitivement cet article ?');" 
+                              class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('supprimer_' ~ article.id) }}">
+                            <button type="submit" class="btn btn-outline-danger btn-lg" title="Supprimer">
+                                <i class="bi bi-trash me-1"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+                    
+                    {# 🆕 STATS #}
+                    <div class="article-stats mt-4 pt-3 border-top small text-muted">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <i class="bi bi-clock text-primary"></i>
+                                {{ article.contenu|reading_time }}
+                            </div>
+                            <div class="col-md-4">
+                                <i class="bi bi-calendar"></i>
+                                {{ article.dateCreation|date('d MMM Y') }}
+                            </div>
+                            <div class="col-md-4">
+                                <i class="bi bi-person"></i>
+                                {{ article.auteur }}
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </article>
+        </div>
     </div>
-    <a href="{{ path('app_articles') }}" class="btn btn-outline-secondary">
-        ← Retour à la liste
-    </a>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+.article-header h1 {
+    line-height: 1.1;
+}
+.meta-bar .badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+}
+.article-stats i {
+    margin-right: 0.5em;
+    width: 1.2em;
+}
+@media (max-width: 768px) {
+    .meta-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5em;
+    }
+}
+</style>
 {% endblock %}

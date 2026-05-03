@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
 services:
+    # default configuration for services in *this* file
     _defaults:
         autowire: true
         autoconfigure: true
@@ -11,10 +12,13 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+            - '../src/Tests/'
 
-    # 🆕 TP5 SERVICES
-    App\Service\ReadingTimeCalculator:
+    # 🆕 SERVICES EXPLICITES (SOLUTION !)
+    App\Service\:
+        resource: '../src/Service/*'
         tags: ['controller.service_arguments']
-    
-    App\Twig\ReadingTimeExtension:
+
+    App\Twig\:
+        resource: '../src/Twig/*'
         tags: ['twig.extension']
